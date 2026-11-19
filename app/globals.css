@@ -1,0 +1,261 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Light Theme - Deep Teal & Copper */
+
+  /* ====== Page background & default text ====== */
+  --background: #ffffff; /* Page background (body, sections) */
+  --foreground: #0d1a1a; /* Default text color (headings, paragraphs) */
+
+  /* ====== Cards & Popovers ====== */
+  --card: #ffffff; /* Card background (cards, panels) */
+  --card-foreground: #0d1a1a; /* Text on cards */
+
+  --popover: #ffffff; /* Popover/dropdown background */
+  --popover-foreground: #0d1a1a; /* Text on popovers */
+
+  /* ====== Primary ====== */
+  --primary: #1a5a5a; /* Main brand color (buttons, links, banners) */
+  --primary-foreground: #ffffff; /* Text on primary backgrounds (e.g., button text) */
+
+  /* ====== Secondary ====== */
+  --secondary: #c46a3a; /* Secondary accent (CTAs, highlights, badges) */
+  --secondary-foreground: #ffffff; /* Text on secondary backgrounds */
+
+  /* ====== Muted (subtle backgrounds) ====== */
+  --muted: #f5f2eb; /* Soft backgrounds (e.g., alternate section bg) */
+  --muted-foreground: #3d4a4a; /* Dimmed text (captions, descriptions) */
+
+  /* ====== Accent (highlight/light backgrounds) ====== */
+  --accent: #d4e8e8; /* Light background for tags, icons, hover states */
+  --accent-foreground: #1a5a5a; /* Text on accent backgrounds */
+
+  /* ====== Destructive (errors, warnings) ====== */
+  --destructive: #dc2626; /* Red for errors, alerts, delete buttons */
+  --destructive-foreground: #ffffff; /* Text on destructive backgrounds */
+
+  /* ====== Borders & Inputs ====== */
+  --border: #dce4e4; /* Borders, dividers, outlines */
+  --input: #dce4e4; /* Input field borders */
+  --ring: #1a5a5a; /* Focus ring color (keyboard navigation) */
+
+  /* ====== Charts (for analytics, graphs) ====== */
+  --chart-1: #1a5a5a;
+  --chart-2: #c46a3a;
+  --chart-3: #3d8f8f;
+  --chart-4: #a85a2a;
+  --chart-5: #2d6a4f;
+
+  --radius: 0.625rem; /* Default border-radius */
+
+  /* ====== Sidebar ====== */
+  --sidebar: #f8fafc; /* Sidebar background */
+  --sidebar-foreground: #0d1a1a; /* Sidebar text */
+  --sidebar-primary: #1a5a5a; /* Sidebar primary accent (active items) */
+  --sidebar-primary-foreground: #ffffff; /* Text on sidebar primary items */
+  --sidebar-accent: #d4e8e8; /* Sidebar accent (hover states) */
+  --sidebar-accent-foreground: #1a5a5a; /* Text on sidebar accent items */
+  --sidebar-border: #dce4e4; /* Sidebar borders */
+  --sidebar-ring: #1a5a5a; /* Sidebar focus ring */
+}
+
+.dark {
+  /* Dark Theme - Deep Teal & Copper */
+
+  --background: #0d1a1a; /* Page background */
+  --foreground: #ecf2f2; /* Default text (headings, paragraphs) */
+
+  --card: #1a2a2a; /* Card background */
+  --card-foreground: #ecf2f2; /* Text on cards */
+
+  --popover: #1a2a2a; /* Popover background */
+  --popover-foreground: #ecf2f2; /* Text on popovers */
+
+  /* Primary - Copper (stands out on dark) */
+  --primary: #d4845a; /* Main brand color (buttons, links, banners) */
+  --primary-foreground: #0d1a1a; /* Text on primary (e.g., button text) */
+
+  /* Secondary - Soft gold/amber */
+  --secondary: #dbb95c; /* Secondary accent (CTAs, highlights) */
+  --secondary-foreground: #0d1a1a; /* Text on secondary backgrounds */
+
+  --muted: #1f3333; /* Soft backgrounds (alternate sections) */
+  --muted-foreground: #b0c4c4; /* Dimmed text (captions, descriptions) */
+
+  --accent: #1a4040; /* Light background for tags, icons, hovers */
+  --accent-foreground: #ecf2f2; /* Text on accent backgrounds */
+
+  --destructive: #ef4444; /* Red for errors, alerts, delete */
+  --destructive-foreground: #ffffff; /* Text on destructive */
+
+  --border: rgba(255, 255, 255, 0.06); /* Borders, dividers */
+  --input: rgba(255, 255, 255, 0.1); /* Input field borders */
+  --ring: #d4845a; /* Focus ring color */
+
+  /* Charts */
+  --chart-1: #d4845a;
+  --chart-2: #dbb95c;
+  --chart-3: #4caf84;
+  --chart-4: #a85a2a;
+  --chart-5: #8a9a7a;
+
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar: #0d1a1a;
+  --sidebar-foreground: #ecf2f2;
+  --sidebar-primary: #d4845a; /* Active items */
+  --sidebar-primary-foreground: #0d1a1a;
+  --sidebar-accent: #1a2a2a; /* Hover states */
+  --sidebar-accent-foreground: #ecf2f2;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-ring: #d4845a;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* ---------- Bottom wave / angle ---------- */
+.section-bottom-wave {
+  position: relative;
+}
+.section-bottom-wave::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: var(--wave-color, #f1f5f9);
+  clip-path: ellipse(70% 80% at 50% 100%);
+  pointer-events: none;
+}
+
+.section-bottom-angle::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--wave-color, #f1f5f9);
+  clip-path: polygon(0 40%, 100% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .section-bottom-wave::after {
+    height: 40px;
+    clip-path: ellipse(80% 60% at 50% 100%);
+  }
+  .section-bottom-angle::after {
+    height: 30px;
+    clip-path: polygon(0 30%, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+/* ---------- Video wrapper ---------- */
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25);
+}
+.video-wrapper iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ---------- Animations ---------- */
+.btn-pulse {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+@keyframes pulse-soft {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(26, 86, 219, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(26, 86, 219, 0);
+  }
+}
+
+.phone-bounce {
+  animation: bounce-phone 1.8s ease-in-out infinite;
+}
+@keyframes bounce-phone {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.stars {
+  color: #f59e0b;
+  letter-spacing: 2px;
+}

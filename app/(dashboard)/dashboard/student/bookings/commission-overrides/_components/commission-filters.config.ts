@@ -1,0 +1,91 @@
+// app/dashboard/admin/drivers/commission/_components/commission-filters.config.ts
+import { IRELAND_COUNTIES } from "@/types/instructor.types";
+import type { FilterConfig } from "@/types/filter";
+
+export const commissionFilters: FilterConfig[] = [
+  {
+    id: "search",
+    label: "Search Instructors",
+    type: "text",
+    placeholder: "Search by name or email...",
+    width: "full",
+    defaultValue: "",
+  },
+  {
+    id: "overrideStatus",
+    label: "Override Status",
+    type: "select",
+    options: [
+      { label: "All Instructors", value: "all" },
+      { label: "Custom Override", value: "custom" },
+      { label: "Default Rate", value: "default" },
+    ],
+    defaultValue: "all",
+    section: "Commission",
+    width: "half",
+  },
+  {
+    id: "county",
+    label: "County",
+    type: "select",
+    options: [
+      { label: "All Counties", value: "all" },
+      ...IRELAND_COUNTIES.map((c) => ({ label: c, value: c })),
+    ],
+    defaultValue: "all",
+    section: "Location",
+    width: "half",
+  },
+  {
+    id: "transmission",
+    label: "Transmission",
+    type: "select",
+    options: [
+      { label: "All", value: "all" },
+      { label: "Manual", value: "manual" },
+      { label: "Automatic", value: "automatic" },
+      { label: "Both", value: "both" },
+    ],
+    defaultValue: "all",
+    section: "Teaching",
+    width: "half",
+  },
+  {
+    id: "effectiveRate",
+    label: "Min. Effective Rate (%)",
+    type: "number",
+    operator: "gte",
+    defaultValue: 0,
+    props: { min: 0, max: 100 },
+    section: "Commission",
+    width: "half",
+  },
+  {
+    id: "monthlyCommission",
+    label: "Min. Monthly Commission (€)",
+    type: "number",
+    operator: "gte",
+    defaultValue: 0,
+    props: { min: 0 },
+    section: "Commission",
+    width: "half",
+  },
+  {
+    id: "yearsOfExperience",
+    label: "Min. Years Experience",
+    type: "number",
+    operator: "gte",
+    defaultValue: 0,
+    props: { min: 0, max: 50 },
+    section: "Teaching",
+    width: "half",
+  },
+  {
+    id: "lastOverrideAt",
+    label: "Last Override",
+    type: "date-range",
+    section: "Date Filters",
+    width: "full",
+    defaultValue: { from: undefined, to: undefined },
+  },
+];
