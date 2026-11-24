@@ -15,13 +15,11 @@ import type {
   PaginatedResponse,
 } from "@/types/booking.types";
 
-/** Unwrap the standard { success, data } envelope, safely. */
 function unwrap<T>(body: any): T {
   return (body?.data ?? body) as T;
 }
 
 class BookingService {
-  // ── Availability for a date ──────────────────────────────────
   async getAvailability(params: AvailabilityParams): Promise<AvailabilityResponse> {
     const url = `/bookings/availability${buildQueryString(params)}`;
     const res = await httpClient.request<any>(url, { method: "GET" });
@@ -44,7 +42,6 @@ class BookingService {
     };
   }
 
-  // ── Instructors free at a specific start time ────────────────
   async getAvailableInstructors(startTime: string): Promise<BookingInstructor[]> {
     const url = `/bookings/availability/instructors?startTime=${encodeURIComponent(startTime)}`;
     const res = await httpClient.request<any>(url, { method: "GET" });
@@ -56,7 +53,6 @@ class BookingService {
     }));
   }
 
-  // ── Create one or more lessons ───────────────────────────────
   async createBooking(payload: CreateBookingPayload): Promise<CreateBookingResult> {
     const res = await httpClient.request<any>("/bookings", {
       method: "POST",
@@ -65,7 +61,6 @@ class BookingService {
     return unwrap<CreateBookingResult>(res.data);
   }
 
-  // ── All lessons from one checkout ────────────────────────────
   async getGroup(bookingGroupId: string): Promise<Booking[]> {
     const res = await httpClient.request<any>(`/bookings/group/${bookingGroupId}`, {
       method: "GET",
@@ -73,7 +68,6 @@ class BookingService {
     return unwrap<Booking[]>(res.data);
   }
 
-  // ── Single booking ───────────────────────────────────────────
   async getBookingById(id: string): Promise<Booking> {
     const res = await httpClient.request<any>(`/bookings/${id}`, {
       method: "GET",
@@ -81,7 +75,6 @@ class BookingService {
     return unwrap<Booking>(res.data);
   }
 
-  // ── Student's own bookings ───────────────────────────────────
   async getMyBookings(params: BookingFilters = {}): Promise<PaginatedResponse<Booking>> {
     const url = `/bookings/me${buildQueryString(params)}`;
     const res = await httpClient.request<any>(url, { method: "GET" });
@@ -100,20 +93,27 @@ class BookingService {
     };
   }
 
-  // ── Cancel one lesson ────────────────────────────────────────
-  async cancelBooking(id: string): Promise<Booking> {
-    const res = await httpClient.request<any>(`/bookings/${id}/cancel`, {
+  /**
+   * PATCH /bookings/:id/cancel
+   * Backend: BookingStatusUpdate(id, CANCELLED, { actingUserId, reason })
+   */
+  async cancelBooking(id: string, reason?: string): Promise<Booking> {
+    const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/cancel`, {
       method: "PATCH",
+      body: { reason },
     });
     return unwrap<Booking>(res.data);
   }
 
-  // ── Reschedule (when the route exists) ───────────────────────
+  /**
+   * PATCH /bookings/:id/reschedule
+   * Body: { startTime: ISO8601, instructorId?: uuid }
+   */
   async rescheduleBooking(
     id: string,
     payload: { startTime: string; instructorId?: string | null }
   ): Promise<Booking> {
-    const res = await httpClient.request<any>(`/bookings/${id}/reschedule`, {
+    const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/reschedule`, {
       method: "PATCH",
       body: payload,
     });

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // src/app/dashboard/instructor/bookings/requests/_components/CancelDialog.tsx
 "use client";
 

@@ -2,7 +2,7 @@
 // src/services/bookings/booking.instructor.service.ts
 
 import { httpClient } from "../http/client";
-import type { BookingRequest } from "@/types/booking.types";
+import type { BookingRequest, BookingStatus } from "@/types/booking.types";
 
 /** Unwrap the { success, statusCode, message, data } envelope. */
 function unwrap<T>(body: any): T {
@@ -33,57 +33,69 @@ class BookingInstructorService {
       start: r.start,
       end: r.end,
       status: r.status,
-      email: r.email ?? undefined, // ← add
+      email: r.email ?? undefined,
       phone: r.phone ?? undefined,
       studentName: r.studentName ?? "",
       lessonType: r.lessonType ?? null,
     }));
   }
 
-  // ── Write: confirm a pending request ────────────────────────
+  // ── Write: single endpoint for ALL status changes ───────────
   /**
-   * POST /bookings/:id/confirm
+   * PATCH /bookings/:id/status
+   * Body: { status: BookingStatus, reason?: string }
    *
-   * TODO(backend): route not implemented yet. Will 404 until
-   * BookingsController gets `@Post(':id/confirm')`.
-   * Frontend already calls the intended path so no change is
-   * needed when the backend catches up.
+   * Backend: BookingStatusUpdate(id, status, { actingUserId, reason })
+   *
+   * This is the only mutating route. `confirm()` / `cancel()` below
+   * are thin semantic wrappers so callers stay readable.
    */
-  async confirm(id: string): Promise<void> {
-    await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/confirm`, {
-      method: "POST",
-    });
-  }
-
-  // ── Write: cancel a request ─────────────────────────────────
-  /**
-   * PATCH /bookings/:id/cancel
-   * (backed by `BookingsService.cancel()` on the backend)
-   */
-  async cancel(id: string, reason?: string): Promise<void> {
-    await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/cancel`, {
+  async updateStatus(id: string, status: BookingStatus, reason?: string): Promise<BookingRequest> {
+    const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/status`, {
       method: "PATCH",
-      body: { reason },
+      body: { status, reason },
     });
+    return unwrap<BookingRequest>(res.data);
   }
 
-  // ── Write: reschedule a request ─────────────────────────────
+  // ── Convenience wrappers (drawer calls these) ───────────────
+
+  /** PENDING → CONFIRMED */
+  async confirm(id: string): Promise<BookingRequest> {
+    return this.updateStatus(id, "confirmed");
+  }
+
+  /** PENDING/CONFIRMED → CANCELLED */
+  async cancel(id: string, reason?: string): Promise<BookingRequest> {
+    return this.updateStatus(id, "cancelled", reason);
+  }
+
+  /** CONFIRMED → NO_SHOW */
+  async markNoShow(id: string, reason?: string): Promise<BookingRequest> {
+    return this.updateStatus(id, "no_show", reason);
+  }
+
+  /** CONFIRMED → COMPLETED */
+  async complete(id: string): Promise<BookingRequest> {
+    return this.updateStatus(id, "completed");
+  }
+
+  // ── Write: reschedule (separate route) ──────────────────────
   /**
    * PATCH /bookings/:id/reschedule
+   * Body: { startTime: ISO8601, instructorId?: uuid }
    *
-   * TODO(backend): route not implemented yet. Body will be
-   * `{ startTime: ISO8601 }` (see RescheduleBookingDto).
-   * Currently accepts (date, start) — the caller should build
-   * the Dublin-local ISO and pass it in `start`.
+   * Caller must build a Dublin-local ISO (see `dublinDateTimeToIso`).
    */
   async reschedule(
     id: string,
     payload: { startTime: string; instructorId?: string | null }
-  ): Promise<void> {
-    await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/reschedule`, {
+  ): Promise<BookingRequest> {
+    const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/reschedule`, {
       method: "PATCH",
       body: payload,
     });
+    return unwrap<BookingRequest>(res.data);
   }
 }
 
