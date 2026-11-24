@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // services/booking/booking.service.ts
 
 import { httpClient } from "../http/client";

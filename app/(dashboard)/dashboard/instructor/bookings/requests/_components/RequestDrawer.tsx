@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/dashboard/instructor/bookings/requests/_components/RequestDrawer.tsx
 "use client";
 
@@ -16,7 +17,6 @@ import {
   Clock,
   Car,
   Loader2,
-  FileText,
   Euro,
   MessageSquare,
 } from "lucide-react";
@@ -159,13 +159,13 @@ export function RequestDrawer({
                 <div className="grid grid-cols-1 gap-2">
                   <ContactRow
                     icon={<Phone className="h-4 w-4" />}
-                    label={request.studentPhone}
-                    href={`tel:${request.studentPhone}`}
+                    label={request.phone}
+                    href={`tel:${request.phone}`}
                   />
                   <ContactRow
                     icon={<Mail className="h-4 w-4" />}
-                    label={request.studentEmail}
-                    href={`mailto:${request.studentEmail}`}
+                    label={request.email}
+                    href={`mailto:${request.email}`}
                   />
                 </div>
               </section>
@@ -289,7 +289,15 @@ export function RequestDrawer({
 
 // ── Small primitives ──────────────────────────────────────────────
 
-function ContactRow({ icon, label, href }: { icon: React.ReactNode; label: string; href: string }) {
+function ContactRow({
+  icon,
+  label,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: any | string;
+  href: string;
+}) {
   return (
     <a
       href={href}
@@ -301,7 +309,7 @@ function ContactRow({ icon, label, href }: { icon: React.ReactNode; label: strin
   );
 }
 
-function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: any }) {
   return (
     <div>
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">

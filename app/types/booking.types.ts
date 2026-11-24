@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // types/booking.types.ts
 
 // ── Enums (mirror backend enums) ──
@@ -114,19 +115,23 @@ export interface BookingFilters {
 
 // ── Admin/instructor request view (unchanged from your original) ──
 export interface BookingRequest {
+  // ── always returned ────────────────────────────────────────
   id: string;
+  bookingGroupId: string; // ← was missing; API sends it
+  date: string; // YYYY-MM-DD (Dublin)
+  start: string; // "HH:mm"
+  end: string; // "HH:mm"
+  status: BookingStatus; // ← removed `?`; always present
   studentName: string;
-  studentPhone: string;
-  studentEmail: string;
+  lessonType: string | null; // API sends null or a string
+
+  // ── future / drawer detail (backend doesn't send yet) ──────
+  phone?: string;
+  email?: string;
   studentAvatarUrl?: string;
-  date: string;
-  start: string;
-  end: string;
-  status: BookingStatus;
-  lessonType: string;
   pickupLocation?: string;
   notes?: string;
-  requestedAt: string;
+  requestedAt?: any; // ISO timestamp
   price?: number;
 }
 

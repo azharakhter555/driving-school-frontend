@@ -1,18 +1,22 @@
-// src/app/dashboard/instructor/bookings/requests/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Inbox, Calendar as CalendarIcon } from "lucide-react";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { ErrorState } from "@/components/shared/ErrorState";
+
 import { bookingsService } from "@/services/bookings/booking.instructor.service";
+
 import type { BookingRequest, RequestFilter } from "@/types/booking.types";
+
 import { DAYS } from "@/types/availability.types";
 import type { DayKey } from "@/types/availability.types";
+
 import {
   addDays,
   formatWeekLabel,
@@ -21,6 +25,7 @@ import {
   timeToMinutes,
   toISODate,
 } from "@/lib/week-utils";
+
 import { RequestDrawer } from "./_components/RequestDrawer";
 
 const DAY_START = 7 * 60;
@@ -29,32 +34,72 @@ const PX_PER_MIN = 0.9;
 
 export default function BookingRequestsPage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
   const [filter, setFilter] = useState<RequestFilter>("pending");
   const [selected, setSelected] = useState<BookingRequest | null>(null);
 
+  const [reloadKey, setReloadKey] = useState(0);
+
   const weekStartISO = useMemo(() => toISODate(weekStart), [weekStart]);
 
-  const load = async () => {
+  // ── State reset helpers (called from event handlers, NOT the effect) ──
+  const beginLoad = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    try {
-      const data = await bookingsService.getRequests(weekStartISO);
-      setRequests(data);
-    } catch (e) {
-      setError(e instanceof Error ? e : new Error("Failed to load requests"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, []);
 
+  const goToWeek = useCallback(
+    (next: Date | ((prev: Date) => Date)) => {
+      beginLoad();
+      setWeekStart(next as Date | ((prev: Date) => Date));
+    },
+    [beginLoad]
+  );
+
+  const reload = useCallback(() => {
+    beginLoad();
+    setReloadKey((k) => k + 1);
+  }, [beginLoad]);
+
+  const handlePrevWeek = useCallback(() => goToWeek((w) => addDays(w, -7)), [goToWeek]);
+  const handleNextWeek = useCallback(() => goToWeek((w) => addDays(w, 7)), [goToWeek]);
+  const handleThisWeek = useCallback(() => goToWeek(startOfWeek(new Date())), [goToWeek]);
+
+  const handleRetry = useCallback(() => reload(), [reload]);
+
+  const handleMutated = useCallback(() => {
+    setSelected(null);
+    reload();
+  }, [reload]);
+
+  // ── Effect: ONLY async setState (inside promise callbacks) ───────────
   useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [weekStartISO]);
+    let cancelled = false;
 
+    bookingsService
+      .getRequests(weekStartISO)
+      .then((data) => {
+        if (!cancelled) setRequests(data);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e : new Error("Failed to load requests"));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [weekStartISO, reloadKey]);
+
+  // Hour labels 07:00 → 21:00
   const hours = useMemo(() => {
     const out: number[] = [];
     for (let m = DAY_START; m <= DAY_END; m += 60) out.push(m);
@@ -76,26 +121,22 @@ export default function BookingRequestsPage() {
       sat: [],
       sun: [],
     };
+
     const isoToKey = new Map<string, DayKey>();
     DAYS.forEach((d, i) => {
       isoToKey.set(toISODate(addDays(weekStart, i)), d.key);
     });
+
     filteredRequests.forEach((r) => {
       const key = isoToKey.get(r.date);
-      if (key) map[key]!.push(r);
+      if (key) map[key].push(r);
     });
+
     return map;
   }, [filteredRequests, weekStart]);
 
   const todayISO = toISODate(new Date());
-
   const pendingCount = requests.filter((r) => r.status === "pending").length;
-
-  // Called by drawer after a mutation
-  const handleMutated = () => {
-    setSelected(null);
-    load();
-  };
 
   return (
     <div className="space-y-6">
@@ -112,6 +153,7 @@ export default function BookingRequestsPage() {
             )}
           </p>
         </div>
+
         <Link href="/dashboard/instructor/calendar">
           <Button variant="outline" className="gap-2">
             <CalendarIcon className="h-4 w-4" />
@@ -123,25 +165,18 @@ export default function BookingRequestsPage() {
       {/* Toolbar */}
       <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setWeekStart((w) => addDays(w, -7))}
-            aria-label="Previous week"
-          >
+          <Button variant="outline" size="icon" onClick={handlePrevWeek} aria-label="Previous week">
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setWeekStart(startOfWeek(new Date()))}>
+
+          <Button variant="outline" size="sm" onClick={handleThisWeek}>
             This week
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setWeekStart((w) => addDays(w, 7))}
-            aria-label="Next week"
-          >
+
+          <Button variant="outline" size="icon" onClick={handleNextWeek} aria-label="Next week">
             <ChevronRight className="h-4 w-4" />
           </Button>
+
           <div className="ml-2 text-sm font-medium">{formatWeekLabel(weekStart)}</div>
         </div>
 
@@ -165,7 +200,7 @@ export default function BookingRequestsPage() {
       {isLoading ? (
         <LoadingSpinner size="lg" text="Loading requests..." />
       ) : error ? (
-        <ErrorState error={error} onRetry={load} title="Failed to load requests" />
+        <ErrorState error={error} onRetry={handleRetry} title="Failed to load requests" />
       ) : filteredRequests.length === 0 ? (
         <Card className="flex flex-col items-center justify-center gap-3 p-12 text-center">
           <div className="rounded-full bg-muted p-4">
@@ -187,10 +222,12 @@ export default function BookingRequestsPage() {
           {/* Day header */}
           <div className="grid grid-cols-[64px_repeat(7,minmax(0,1fr))] border-b bg-muted/40">
             <div className="p-2" />
+
             {DAYS.map((d, i) => {
               const date = addDays(weekStart, i);
               const isToday = toISODate(date) === todayISO;
               const count = requestsByDay[d.key]?.length ?? 0;
+
               return (
                 <div
                   key={d.key}
@@ -215,7 +252,6 @@ export default function BookingRequestsPage() {
           {/* Grid */}
           <div className="relative max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-[64px_repeat(7,minmax(0,1fr))]">
-              {/* Hour labels */}
               <div>
                 {hours.map((m) => (
                   <div
@@ -228,7 +264,6 @@ export default function BookingRequestsPage() {
                 ))}
               </div>
 
-              {/* Day columns */}
               {DAYS.map((d, i) => {
                 const dayRequests = requestsByDay[d.key] ?? [];
                 const date = addDays(weekStart, i);
@@ -254,6 +289,7 @@ export default function BookingRequestsPage() {
                     {dayRequests.map((r) => {
                       const top = (timeToMinutes(r.start) - DAY_START) * PX_PER_MIN;
                       const height = (timeToMinutes(r.end) - timeToMinutes(r.start)) * PX_PER_MIN;
+
                       return (
                         <RequestBlock
                           key={r.id}
@@ -271,18 +307,25 @@ export default function BookingRequestsPage() {
         </Card>
       )}
 
-      {/* Drawer */}
       <RequestDrawer
         request={selected}
         open={!!selected}
-        onOpenChange={(open: any) => !open && setSelected(null)}
+        onOpenChange={(open: unknown) => !open && setSelected(null)}
         onMutated={handleMutated}
       />
     </div>
   );
 }
 
-// ── Request block on the grid ─────────────────────────────────────
+const STYLE_BY_STATUS: Partial<Record<BookingRequest["status"], string>> = {
+  pending:
+    "border-l-amber-500 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-950/60",
+  confirmed:
+    "border-l-blue-500 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-950/60",
+  completed: "border-l-emerald-500 bg-emerald-50 dark:bg-emerald-950/40",
+  cancelled: "border-l-muted bg-muted/40 opacity-60",
+  no_show: "border-l-red-500 bg-red-50 dark:bg-red-950/40",
+};
 
 function RequestBlock({
   request,
@@ -293,21 +336,13 @@ function RequestBlock({
   style: React.CSSProperties;
   onClick: () => void;
 }) {
-  const styleByStatus: Record<string, string> = {
-    pending:
-      "border-l-amber-500 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-950/60",
-    confirmed:
-      "border-l-blue-500 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/40 dark:hover:bg-blue-950/60",
-    completed: "border-l-emerald-500 bg-emerald-50 dark:bg-emerald-950/40",
-    cancelled: "border-l-muted bg-muted/40 opacity-60",
-    rescheduled: "border-l-purple-500 bg-purple-50 dark:bg-purple-950/40",
-  };
-
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`absolute left-1 right-1 cursor-pointer overflow-hidden rounded-md border-l-4 p-1.5 text-left shadow-sm transition ${styleByStatus[request.status] ?? ""}`}
+      className={`absolute left-1 right-1 cursor-pointer overflow-hidden rounded-md border-l-4 p-1.5 text-left shadow-sm transition ${
+        STYLE_BY_STATUS[request.status] ?? ""
+      }`}
       style={style}
       title={`${request.studentName} · ${request.start}–${request.end}`}
     >
