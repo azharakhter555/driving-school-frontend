@@ -46,7 +46,6 @@ export default function BookingRequestsPage() {
 
   const weekStartISO = useMemo(() => toISODate(weekStart), [weekStart]);
 
-  // ── State reset helpers (called from event handlers, NOT the effect) ──
   const beginLoad = useCallback(() => {
     setIsLoading(true);
     setError(null);
@@ -76,7 +75,6 @@ export default function BookingRequestsPage() {
     reload();
   }, [reload]);
 
-  // ── Effect: ONLY async setState (inside promise callbacks) ───────────
   useEffect(() => {
     let cancelled = false;
 
@@ -99,7 +97,6 @@ export default function BookingRequestsPage() {
     };
   }, [weekStartISO, reloadKey]);
 
-  // Hour labels 07:00 → 21:00
   const hours = useMemo(() => {
     const out: number[] = [];
     for (let m = DAY_START; m <= DAY_END; m += 60) out.push(m);
@@ -182,7 +179,7 @@ export default function BookingRequestsPage() {
 
         {/* Filter pills */}
         <div className="flex items-center gap-1 rounded-lg border p-1">
-          {(["pending", "confirmed", "all"] as const).map((f) => (
+          {(["pending", "confirmed", "cancelled", "all"] as const).map((f) => (
             <Button
               key={f}
               variant={filter === f ? "default" : "ghost"}

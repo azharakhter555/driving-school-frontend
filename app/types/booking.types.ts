@@ -121,6 +121,7 @@ export interface BookingRequest {
   date: string; // YYYY-MM-DD (Dublin)
   start: string; // "HH:mm"
   end: string; // "HH:mm"
+  instructorId: string;
   status: BookingStatus; // ← removed `?`; always present
   studentName: string;
   lessonType: string | null; // API sends null or a string
@@ -131,8 +132,8 @@ export interface BookingRequest {
   studentAvatarUrl?: string;
   pickupLocation?: string;
   notes?: string;
-  requestedAt?: any; // ISO timestamp
+  createdAt?: any; // ISO timestamp
   price?: number;
 }
 
-export type RequestFilter = "pending" | "confirmed" | "all";
+export type RequestFilter = "pending" | "confirmed" | "cancelled" | "all";

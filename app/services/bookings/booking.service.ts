@@ -109,14 +109,22 @@ class BookingService {
    * PATCH /bookings/:id/reschedule
    * Body: { startTime: ISO8601, instructorId?: uuid }
    */
+  /**
+   * PATCH /bookings/:id/reschedule
+   * Body: { startTime: ISO8601, reason?: string }
+   */
   async rescheduleBooking(
     id: string,
-    payload: { startTime: string; instructorId?: string | null }
+    payload: {
+      startTime: string;
+      reason?: string;
+    }
   ): Promise<Booking> {
     const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/reschedule`, {
       method: "PATCH",
       body: payload,
     });
+
     return unwrap<Booking>(res.data);
   }
 }

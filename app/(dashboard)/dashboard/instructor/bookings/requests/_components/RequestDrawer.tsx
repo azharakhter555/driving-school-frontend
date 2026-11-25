@@ -62,12 +62,6 @@ export function RequestDrawer({
     month: "long",
     year: "numeric",
   });
-  const requestedAt = new Date(request.requestedAt).toLocaleDateString("en-IE", {
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
   const initials = request.studentName
     .split(" ")
@@ -108,7 +102,7 @@ export function RequestDrawer({
                 {request.status}
               </Badge>
             </div>
-            <p className="pt-1 text-xs text-muted-foreground">Requested {requestedAt}</p>
+            <p className="pt-1 text-xs text-muted-foreground">Requested {dateFull}</p>
           </SheetHeader>
 
           {/* ── Scrollable body ── */}

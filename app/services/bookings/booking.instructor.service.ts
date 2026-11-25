@@ -9,6 +9,14 @@ function unwrap<T>(body: any): T {
   return (body?.data ?? body) as T;
 }
 
+export interface AvailabilitySlot {
+  id: string; // e.g. "2026-11-26T10:00"
+  label: string; // e.g. "10:00 am"
+  startTime: string; // ISO
+  startHour: number;
+  available: boolean;
+}
+
 class BookingInstructorService {
   // ── Read: instructor's requests for a week ──────────────────
   /**
@@ -29,6 +37,7 @@ class BookingInstructorService {
     return (payload ?? []).map((r: any) => ({
       id: r.id,
       bookingGroupId: r.bookingGroupId,
+      instructorId: r.instructorId ?? "",
       date: r.date,
       start: r.start,
       end: r.end,
@@ -58,6 +67,49 @@ class BookingInstructorService {
     return unwrap<BookingRequest>(res.data);
   }
 
+  // ── Read: available slots for a date (for this instructor) ──
+  /**
+   * GET /bookings/availability?date=YYYY-MM-DD&instructorId=<uuid>
+   *
+   * The backend already excludes slots where the instructor is:
+   *  - not on their availability roster
+   *  - already booked (pending/confirmed)
+   * So any slot returned here is safe to pick.
+   */
+  async getAvailability(date: string, instructorId: string): Promise<AvailabilitySlot[]> {
+    const params = new URLSearchParams({ date });
+    if (instructorId) params.set("instructorId", instructorId);
+
+    const res = await httpClient.request<any>(`/bookings/availability?${params.toString()}`, {
+      method: "GET",
+    });
+    const payload = unwrap<any>(res.data);
+    return (payload?.slots ?? []) as AvailabilitySlot[];
+  }
+
+  // ── Write: reschedule ───────────────────────────────────────
+  /**
+   * PATCH /bookings/:id/reschedule
+   * Body: { startTime: ISO8601 }
+   *
+   * Status is preserved (a pending booking stays pending after
+   * reschedule). `endTime` is computed by the backend from
+   * LESSON_MINUTES.
+   */
+  async reschedule(
+    id: string,
+    payload: {
+      startTime: string;
+      reason?: string;
+    }
+  ): Promise<BookingRequest> {
+    const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/reschedule`, {
+      method: "PATCH",
+      body: payload,
+    });
+
+    return res.data?.data ?? res.data;
+  }
   // ── Convenience wrappers (drawer calls these) ───────────────
 
   /** PENDING → CONFIRMED */
@@ -78,24 +130,6 @@ class BookingInstructorService {
   /** CONFIRMED → COMPLETED */
   async complete(id: string): Promise<BookingRequest> {
     return this.updateStatus(id, "completed");
-  }
-
-  // ── Write: reschedule (separate route) ──────────────────────
-  /**
-   * PATCH /bookings/:id/reschedule
-   * Body: { startTime: ISO8601, instructorId?: uuid }
-   *
-   * Caller must build a Dublin-local ISO (see `dublinDateTimeToIso`).
-   */
-  async reschedule(
-    id: string,
-    payload: { startTime: string; instructorId?: string | null }
-  ): Promise<BookingRequest> {
-    const res = await httpClient.request<any>(`/bookings/${encodeURIComponent(id)}/reschedule`, {
-      method: "PATCH",
-      body: payload,
-    });
-    return unwrap<BookingRequest>(res.data);
   }
 }
 
